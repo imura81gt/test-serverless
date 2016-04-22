@@ -1,0 +1,35 @@
+{
+  "name": "tweet",
+  "runtime": "python2.7",
+  "description": "Serverless Lambda function for project: serverless-bjueih",
+  "customName": false,
+  "customRole": false,
+  "handler": "handler.handler",
+  "timeout": 6,
+  "memorySize": 1024,
+  "authorizer": {},
+  "custom": {
+    "includePaths": [
+      ".",
+      "../../../app/vendored",
+      "../../../app/shared"
+    ],
+    "excludePatterns": []
+  },
+  "endpoints": [],
+  "events": [
+  ],
+  "environment": {
+    "CONSUMER_KEY" : "${consumer_key}",
+    "CONSUMER_SECRET" : "${consumer_secret}",
+    "ACCESS_TOKEN" : "${access_token}",
+    "ACCESS_TOKEN_SECRET" : "${access_token_secret}",
+    "SERVERLESS_PROJECT": "${project}",
+    "SERVERLESS_STAGE": "${stage}",
+    "SERVERLESS_REGION": "${region}"
+  },
+  "vpc": {
+    "securityGroupIds": [],
+    "subnetIds": []
+  }
+}
