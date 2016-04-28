@@ -32,5 +32,12 @@ def handler(event, context):
     for i in range(32):
             randomstring += hexchars[random.randint(0,len(hexchars)-1)]
 
-    api.update_status(status=randomstring)
+    for record in event['Records']:
+        print(record['eventID'])
+        print(record['eventName'])
+        print("DynamoDB Record: " + json.dumps(record['dynamodb'], indent=2))
+        
+        word = record['dynamodb']['Keys']['Uid']['S'] + " " + randomstring
+        api.update_status(status=word)
+
 

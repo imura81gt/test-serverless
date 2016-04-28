@@ -1,7 +1,53 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "The AWS CloudFormation template for this Serverless application's resources outside of Lambdas and Api Gateway",
+  "Parameters": {
+    "ReadCapacityUnits": {
+      "Description": "Provisioned read throughput",
+      "Type": "Number",
+      "Default": "5",
+      "MinValue": "5",
+      "MaxValue": "10000",
+      "ConstraintDescription": "must be between 5 and 10000"
+    },
+
+    "WriteCapacityUnits": {
+      "Description": "Provisioned write throughput",
+      "Type": "Number",
+      "Default": "10",
+      "MinValue": "5",
+      "MaxValue": "10000",
+      "ConstraintDescription": "must be between 5 and 10000"
+    }
+  },
   "Resources": {
+    "DynamoDBTable" : {
+      "Type" : "AWS::DynamoDB::Table",
+      "Properties" : {
+        "TableName" : "${project}-${stage}",
+        "AttributeDefinitions" : [{
+          "AttributeName" : "Uid",
+          "AttributeType" : "S"
+        }],
+        "KeySchema" : [{
+          "AttributeName" : "Uid",
+          "KeyType" : "HASH"
+        }],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": { "Ref": "ReadCapacityUnits" },
+          "WriteCapacityUnits": { "Ref": "WriteCapacityUnits" }
+        },
+        "StreamSpecification" : {
+          "StreamViewType" : "NEW_IMAGE"
+        }
+      }
+    },
+    "S3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "${project}-${stage}"
+      }
+    },
     "IamRoleLambda": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -34,11 +80,51 @@
             {
               "Effect": "Allow",
               "Action": [
+                "lambda:InvokeFunction"
+              ],
+              "Resource": [
+                "*"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
                 "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
               ],
               "Resource": "arn:aws:logs:${region}:*:*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
+              ],
+              "Resource": [
+                "arn:aws:s3:::${project}-${stage}"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject"
+              ],
+              "Resource": [
+                "arn:aws:s3:::${project}-${stage}/*"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:DescribeStream",
+                "dynamodb:ListStreams"
+              ],
+              "Resource": "*"
             }
           ]
         },
@@ -57,6 +143,23 @@
         "Fn::GetAtt": [
           "IamRoleLambda",
           "Arn"
+        ]
+      }
+    },
+    "BucketName": {
+      "Value" : {"Ref" : "S3Bucket"},
+      "Description" : "Name of the newly created S3Bucket"
+    },
+    "DynamoDBTableName" : {
+      "Value" : {"Ref" : "DynamoDBTable"},
+      "Description" : "Name of the newly created DynamoDB table"
+    },
+    "DynamoDBTableArn": {
+      "Description": "ARN of the DynamoDBTable",
+      "Value": {
+        "Fn::GetAtt": [
+          "DynamoDBTable",
+          "StreamArn"
         ]
       }
     }

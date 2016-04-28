@@ -18,8 +18,20 @@
   },
   "endpoints": [],
   "events": [
+    {
+      "name" : "${dynamoDBTableName}",
+      "type": "dynamodbstream",
+      "config": {
+        "streamArn": "${dynamoDBTableArn}",
+        "startingPosition": "LATEST",
+        "batchSize": 50,
+        "enabled": false
+      }
+    }
   ],
   "environment": {
+    "BUCKET_NAME" : "${bucketName}",
+    "DYNAMODB_TABLE_NAME" : "${dynamoDBTableName}",
     "CONSUMER_KEY" : "${consumer_key}",
     "CONSUMER_SECRET" : "${consumer_secret}",
     "ACCESS_TOKEN" : "${access_token}",
